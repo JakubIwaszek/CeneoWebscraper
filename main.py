@@ -44,10 +44,10 @@ def scrapReview(comment):
         confirmedPurchase = comment.find("div", class_="review-pz").text
     dates = comment.find("span", class_="user-post__published").find_all("time")
     publishedDate = dates[0].get("datetime")
-    purchasedDate = ""
+    purchaseDate = ""
     if len(dates) > 1:
-        purchasedDate = dates[1].get("datetime")
-    return Review.ReviewComment(reviewId, authorName, productRate, commentContent, recommendation, confirmedPurchase, publishedDate, purchasedDate)
+        purchaseDate = dates[1].get("datetime")
+    return Review.ReviewComment(reviewId, authorName, productRate, commentContent, recommendation, confirmedPurchase, publishedDate, purchaseDate)
 
 if __name__ == '__main__':
     app.run(debug=True)

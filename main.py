@@ -46,7 +46,7 @@ def scrapReview(comment):
     purchaseDate = ""
     if len(dates) > 1:
         purchaseDate = dates[1].get("datetime")
-    likeCount = comment.find("div", class_="js_product-review-vote").get("data-total-vote")
+    likeCount = comment.find("button", class_="js_product-review-vote").get("data-total-vote")
     app.logger.info(likeCount)
     return Review.ReviewComment(reviewId, authorName, productRate, commentContent, recommendation, confirmedPurchase, publishedDate, purchaseDate)
 

@@ -24,7 +24,7 @@ def index():
         comments = allCommentsSection.find_all("div", class_="user-post user-post__card js_product-review")
         for comment in comments:
             review = scrapReview(comment)
-            # app.logger.info(review.getLogData())
+            app.logger.info(review.getLogData())
         if len(comments) < 10:
             hasNextPage = False
         totalReviews += len(comments)
@@ -34,13 +34,13 @@ def index():
 
 def scrapReview(comment):
     reviewId = comment.get('data-entry-id')
-    authorName = comment.find("span", class_="user-post__author-name").text
-    productRate = comment.find("span", class_="user-post__score-count").text
-    commentContent = comment.find("div", class_="user-post__text").text
-    recommendation = comment.find("span", class_="user-post__author-recomendation").text
+    authorName = comment.find("span", class_="user-post__author-name").text.strip()
+    productRate = comment.find("span", class_="user-post__score-count").text.strip()
+    commentContent = comment.find("div", class_="user-post__text").text.strip()
+    recommendation = comment.find("span", class_="user-post__author-recomendation").text.strip()
     confirmedPurchase = "Opinia nie potwierdzona zakupem"
     if comment.find("div", class_="review-pz"):
-        confirmedPurchase = comment.find("div", class_="review-pz").text
+        confirmedPurchase = comment.find("div", class_="review-pz").text.strip()
     dates = comment.find("span", class_="user-post__published").find_all("time")
     publishedDate = dates[0].get("datetime")
     purchaseDate = ""
@@ -48,8 +48,20 @@ def scrapReview(comment):
         purchaseDate = dates[1].get("datetime")
     likesCount = comment.find("button", class_="vote-yes").get("data-total-vote")
     dislikesCount = comment.find("button", class_="vote-no").get("data-total-vote")
-    app.logger.info(dislikesCount)
-    return Review.ReviewComment(reviewId, authorName, productRate, commentContent, recommendation, confirmedPurchase, publishedDate, purchaseDate, likesCount, dislikesCount)
+    advantages = []
+    if comment.find("div", class_="review-feature__title--positives"):
+        advantagesNodes = comment.find("div", class_="review-feature__title--positives").find_next_siblings("div", {"class": "review-feature__item"})
+        for advantageSingleNode in advantagesNodes:
+            advantage = advantageSingleNode.text.strip()
+            advantages.append(advantage)
+    disAdvantages = []
+    if comment.find("div", class_="review-feature__title--negatives"):
+        disAdvantagesNodes = comment.find("div", class_="review-feature__title--negatives").find_next_siblings("div", {"class": "review-feature__item"})
+        for disAdvantageSingleNode in disAdvantagesNodes:
+            disAdvantage = disAdvantageSingleNode.text.strip()
+            disAdvantages.append(disAdvantage)
+    # app.logger.info(advantages)
+    return Review.ReviewComment(reviewId, authorName, productRate, commentContent, recommendation, confirmedPurchase, publishedDate, purchaseDate, likesCount, dislikesCount, advantages, len(advantages), disAdvantages, len(disAdvantages))
 
 if __name__ == '__main__':
     app.run(debug=True)

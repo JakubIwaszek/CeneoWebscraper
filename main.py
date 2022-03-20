@@ -1,6 +1,7 @@
 from flask import (
     Flask,
-    render_template
+    render_template,
+    request
 )
 import requests
 import logging
@@ -11,6 +12,7 @@ app = Flask(__name__)
 
 @app.route('/', methods=["GET"])
 def index():
+    ## Wywal to do innej funkcji
     global requestedUrl
     page = 1
     hasNextPage = True
@@ -24,13 +26,22 @@ def index():
         comments = allCommentsSection.find_all("div", class_="user-post user-post__card js_product-review")
         for comment in comments:
             review = scrapReview(comment)
-            app.logger.info(review.getLogData())
+            # app.logger.info(review.getLogData())
         if len(comments) < 10:
             hasNextPage = False
         totalReviews += len(comments)
         page += 1
         # app.logger.info(totalReviews)
-    return "results"
+    return render_template("homepage.html")
+
+@app.route('/extract', methods=["POST", "GET"])
+def extractOpinions():
+    app.logger.info(request.form['productId'])
+    return render_template("extractOpinion.html")
+
+## move to another file
+def getReviews(pageId):
+    app.logger.info(pageId)
 
 def scrapReview(comment):
     reviewId = comment.get('data-entry-id')

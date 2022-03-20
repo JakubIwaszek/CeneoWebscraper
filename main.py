@@ -9,7 +9,6 @@ from bs4 import BeautifulSoup
 
 app = Flask(__name__)
 
-
 @app.route('/', methods=["GET"])
 def index():
     global requestedUrl
@@ -25,7 +24,7 @@ def index():
         comments = allCommentsSection.find_all("div", class_="user-post user-post__card js_product-review")
         for comment in comments:
             review = scrapReview(comment)
-            app.logger.info(review.getLogData())
+            # app.logger.info(review.getLogData())
         if len(comments) < 10:
             hasNextPage = False
         totalReviews += len(comments)
@@ -47,6 +46,8 @@ def scrapReview(comment):
     purchaseDate = ""
     if len(dates) > 1:
         purchaseDate = dates[1].get("datetime")
+    likeCount = comment.find("div", class_="js_product-review-vote").get("data-total-vote")
+    app.logger.info(likeCount)
     return Review.ReviewComment(reviewId, authorName, productRate, commentContent, recommendation, confirmedPurchase, publishedDate, purchaseDate)
 
 if __name__ == '__main__':

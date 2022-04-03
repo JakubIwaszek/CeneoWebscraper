@@ -8,6 +8,9 @@
 </head>
 <body>
     {% if error %}  
+        <script>
+            window.alert("Error: " + '{{error}}')
+        </script>
         <p><strong>Error</strong>: {{error}}</p>  
     {% endif %}
     <form action="{{url_for('extractOpinions')}}" method="POST">

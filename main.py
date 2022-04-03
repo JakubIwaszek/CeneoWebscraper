@@ -1,6 +1,7 @@
 from flask import (
     Flask,
     render_template,
+    redirect,
     request
 )
 import requests
@@ -36,7 +37,9 @@ def index():
 
 @app.route('/extract', methods=["POST", "GET"])
 def extractOpinions():
-    app.logger.info(request.form['productId'])
+    if request.method == "POST":
+        productId = request.form['productId']
+        return redirect(f'https://www.ceneo.pl/{productId}/', code=302)
     return render_template("extractOpinion.html")
 
 ## move to another file

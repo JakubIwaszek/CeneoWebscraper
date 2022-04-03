@@ -1,5 +1,6 @@
 from flask import (
     Flask,
+    flash,
     render_template,
     redirect,
     request
@@ -37,10 +38,19 @@ def index():
 
 @app.route('/extract', methods=["POST", "GET"])
 def extractOpinions():
+    error = None
     if request.method == "POST":
         productId = request.form['productId']
-        return redirect(f'https://www.ceneo.pl/{productId}/', code=302)
-    return render_template("extractOpinion.html")
+        redirectUrl = f'https://www.ceneo.pl/{productId}/'
+        statusCode = requests.get(redirectUrl).status_code
+        if len(productId) < 1:
+            error = "Pole id produktu nie moze być puste."
+        elif statusCode != 200:
+            error = "Produkt o podanym id nie istnieje, lub wystąpił inny błąd."
+        else:
+            # start extraction
+            return redirect(redirectUrl, code=302)
+    return render_template("extractOpinion.html", error=error)
 
 ## move to another file
 def getReviews():

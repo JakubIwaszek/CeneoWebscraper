@@ -29,16 +29,27 @@ def extractOpinions():
         elif statusCode != 200:
             error = "Produkt o podanym id nie istnieje, lub wystąpił inny błąd."
         else:
-            getReviewsFromProduct(productId)
-            return redirect(redirectUrl, code=302)
+            getProductData(productId)
+            # return redirect(redirectUrl, code=302)
     return render_template("extractOpinion.html", error=error)
+
+
+def getProductData(productId):
+    requestedUrl = f'https://www.ceneo.pl/{productId}'
+    requestedPage = requests.get(requestedUrl)
+    soup = BeautifulSoup(requestedPage.content, "html.parser")
+    productTitle = soup.find(class_="product-top__product-info__name").text.strip()
+    averageRating = soup.find(class_="product-review__score").text.strip()
+    numberOfReviews = soup.find(class_="product-review__link").find("span").text.strip()
+    app.logger.info(numberOfReviews)
 
 ## move to another file
 def getReviewsFromProduct(productId):
-    global requestedUrl
+    requestedUrl
     page = 1
     hasNextPage = True
     totalReviews = 0
+    allReviews = []
     while(hasNextPage):
         # app.logger.info(page)
         requestedUrl = f'https://www.ceneo.pl/{productId}/opinie-{page}'
@@ -48,12 +59,14 @@ def getReviewsFromProduct(productId):
         comments = allCommentsSection.find_all("div", class_="user-post user-post__card js_product-review")
         for comment in comments:
             review = scrapReview(comment)
+            allReviews.append(review)
             # app.logger.info(review.getLogData())
         if len(comments) < 10:
             hasNextPage = False
         totalReviews += len(comments)
         page += 1
         # app.logger.info(totalReviews)
+    return allReviews
 
 ### REVIEW Scrapper
 

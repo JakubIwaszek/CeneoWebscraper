@@ -1,3 +1,5 @@
+import json
+
 class ReviewComment():
     def __init__(self, id, authorName, productRate, commentText, recommendation, confirmedPurchase, publishedDate, purchaseDate, likesCount, dislikesCount, advantages, advantagesCount, disAdvantages, disAdvantagesCount):
         self.id = id
@@ -17,3 +19,6 @@ class ReviewComment():
 
     def getLogData(self):
         return "\n Review id: " + self.id + "\n Author name: " + self.authorName + " \n Product rate: " + self.productRate + "\n Comment: " + self.commentText + "\n Recommendation: " + self.recommendation + "\n Confirmed purchase: " + self.confirmedPurchase + "\n Published date: " + self.publishedDate + " - Purchase date: " + self.purchaseDate + "\n Likes count: " + self.likesCount + "\n Dislikes count: " + self.dislikesCount + "\n Advantages: " + str(self.advantagesCount) + "\n List: " + " ".join(self.advantages) + "\n Disadvantages: " + str(self.disAdvantagesCount) + "\n List: " + " ".join(self.disAdvantages)
+
+    def toJSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)

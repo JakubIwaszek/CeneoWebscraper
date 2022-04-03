@@ -7,6 +7,7 @@ from flask import (
 )
 import requests
 import logging
+import json
 import Review as Review
 from bs4 import BeautifulSoup
 
@@ -14,26 +15,6 @@ app = Flask(__name__)
 
 @app.route('/', methods=["GET"])
 def index():
-    ## Wywal to do innej funkcji
-    global requestedUrl
-    page = 1
-    hasNextPage = True
-    totalReviews = 0
-    while(hasNextPage):
-        # app.logger.info(page)
-        requestedUrl = f'https://www.ceneo.pl/94823130/opinie-{page}'
-        requestedPage = requests.get(requestedUrl)
-        soup = BeautifulSoup(requestedPage.content, "html.parser")
-        allCommentsSection = soup.find(class_="js_product-reviews js_reviews-hook js_product-reviews-container")
-        comments = allCommentsSection.find_all("div", class_="user-post user-post__card js_product-review")
-        for comment in comments:
-            review = scrapReview(comment)
-            # app.logger.info(review.getLogData())
-        if len(comments) < 10:
-            hasNextPage = False
-        totalReviews += len(comments)
-        page += 1
-        # app.logger.info(totalReviews)
     return render_template("homepage.html")
 
 @app.route('/extract', methods=["POST", "GET"])
@@ -48,14 +29,33 @@ def extractOpinions():
         elif statusCode != 200:
             error = "Produkt o podanym id nie istnieje, lub wystąpił inny błąd."
         else:
-            # start extraction
+            getReviewsFromProduct(productId)
             return redirect(redirectUrl, code=302)
     return render_template("extractOpinion.html", error=error)
 
 ## move to another file
-def getReviews():
-    app.logger.info(request.form['productId'])
-    # app.logger.info(pageId)
+def getReviewsFromProduct(productId):
+    global requestedUrl
+    page = 1
+    hasNextPage = True
+    totalReviews = 0
+    while(hasNextPage):
+        # app.logger.info(page)
+        requestedUrl = f'https://www.ceneo.pl/{productId}/opinie-{page}'
+        requestedPage = requests.get(requestedUrl)
+        soup = BeautifulSoup(requestedPage.content, "html.parser")
+        allCommentsSection = soup.find(class_="js_product-reviews js_reviews-hook js_product-reviews-container")
+        comments = allCommentsSection.find_all("div", class_="user-post user-post__card js_product-review")
+        for comment in comments:
+            review = scrapReview(comment)
+            # app.logger.info(review.getLogData())
+        if len(comments) < 10:
+            hasNextPage = False
+        totalReviews += len(comments)
+        page += 1
+        # app.logger.info(totalReviews)
+
+### REVIEW Scrapper
 
 def scrapReview(comment):
     reviewId = comment.get('data-entry-id')

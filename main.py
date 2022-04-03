@@ -40,8 +40,9 @@ def extractOpinions():
     return render_template("extractOpinion.html")
 
 ## move to another file
-def getReviews(pageId):
-    app.logger.info(pageId)
+def getReviews():
+    app.logger.info(request.form['productId'])
+    # app.logger.info(pageId)
 
 def scrapReview(comment):
     reviewId = comment.get('data-entry-id')

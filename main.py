@@ -1,10 +1,15 @@
 from flask import (
     Flask,
+    flash,
     render_template,
+    redirect,
     request
 )
 import requests
 import logging
+import json
+import os
+from Product import ProductDetails
 import Review as Review
 from bs4 import BeautifulSoup
 
@@ -12,37 +17,68 @@ app = Flask(__name__)
 
 @app.route('/', methods=["GET"])
 def index():
-    ## Wywal to do innej funkcji
-    global requestedUrl
+    return render_template("homepage.html")
+
+@app.route('/extract', methods=["POST", "GET"])
+def extractOpinions():
+    error = None
+    if request.method == "POST":
+        productId = request.form['productId']
+        redirectUrl = f'https://www.ceneo.pl/{productId}/'
+        statusCode = requests.get(redirectUrl).status_code
+        if len(productId) < 1:
+            error = "Pole id produktu nie moze być puste."
+        elif statusCode != 200:
+            error = "Produkt o podanym id nie istnieje, lub wystąpił inny błąd."
+        else:
+            product = getProductData(productId)
+            saveProductAsJson(product)
+            return redirect(redirectUrl, code=302)
+    return render_template("extractOpinion.html", error=error)
+
+def saveProductAsJson(product):
+    with open(os.path.join('products', f"{product.id}.json"), "w") as file:
+        file.write(product.toJSON())
+
+def getProductData(productId):
+    requestedUrl = f'https://www.ceneo.pl/{productId}'
+    requestedPage = requests.get(requestedUrl)
+    soup = BeautifulSoup(requestedPage.content, "html.parser")
+    productTitle = soup.find(class_="product-top__product-info__name").text.strip()
+    averageRating = soup.find(class_="product-review__score").text.strip()
+    numberOfReviews = soup.find(class_="product-review__link").find("span").text.strip()
+    numberOfAdvantages = 0
+    numberOfDisadvantages = 0
+    reviews = getReviewsFromProduct(productId)
+    for review in reviews:
+        numberOfAdvantages += review.advantagesCount
+        numberOfDisadvantages += review.disAdvantagesCount
+    product = ProductDetails(productId, productTitle, numberOfReviews, numberOfAdvantages, numberOfDisadvantages, averageRating, reviews)
+    return product
+
+## move to another file
+def getReviewsFromProduct(productId):
+    requestedUrl = ""
     page = 1
     hasNextPage = True
     totalReviews = 0
+    allReviews = []
     while(hasNextPage):
-        # app.logger.info(page)
-        requestedUrl = f'https://www.ceneo.pl/94823130/opinie-{page}'
+        requestedUrl = f'https://www.ceneo.pl/{productId}/opinie-{page}'
         requestedPage = requests.get(requestedUrl)
         soup = BeautifulSoup(requestedPage.content, "html.parser")
         allCommentsSection = soup.find(class_="js_product-reviews js_reviews-hook js_product-reviews-container")
         comments = allCommentsSection.find_all("div", class_="user-post user-post__card js_product-review")
         for comment in comments:
             review = scrapReview(comment)
-            # app.logger.info(review.getLogData())
+            allReviews.append(review)
         if len(comments) < 10:
             hasNextPage = False
         totalReviews += len(comments)
         page += 1
-        # app.logger.info(totalReviews)
-    return render_template("homepage.html")
+    return allReviews
 
-@app.route('/extract', methods=["POST", "GET"])
-def extractOpinions():
-    app.logger.info(request.form['productId'])
-    return render_template("extractOpinion.html")
-
-## move to another file
-def getReviews():
-    app.logger.info(request.form['productId'])
-    # app.logger.info(pageId)
+### REVIEW Scrapper
 
 def scrapReview(comment):
     reviewId = comment.get('data-entry-id')
@@ -72,7 +108,6 @@ def scrapReview(comment):
         for disAdvantageSingleNode in disAdvantagesNodes:
             disAdvantage = disAdvantageSingleNode.text.strip()
             disAdvantages.append(disAdvantage)
-    # app.logger.info(advantages)
     return Review.ReviewComment(reviewId, authorName, productRate, commentContent, recommendation, confirmedPurchase, publishedDate, purchaseDate, likesCount, dislikesCount, advantages, len(advantages), disAdvantages, len(disAdvantages))
 
 if __name__ == '__main__':

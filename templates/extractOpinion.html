@@ -5,11 +5,35 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ekstrakcja opinii</title>
+    <link rel="stylesheet" href="static/mainStyle.css">
 </head>
 <body>
-    <form action="{{url_for('extractOpinions')}}" method="POST">
-        <input type="text" name="productId">
-        <input type="submit" value="SUBMIT">
-    </form>
+    <div class="navBar">
+        <a href="{{url_for('extractOpinions')}}">
+            Ekstrakcja opinii
+        </a>
+        <a href="">
+            Lista produktów
+        </a>
+        <a href="{{url_for('index')}}">
+            Strona główna
+        </a>
+        <a href="">
+            O autorze
+        </a>
+    </div>
+    {% if error %}  
+        <script>
+            window.alert("Error: " + '{{error}}')
+        </script>
+        <p><strong>Error</strong>: {{error}}</p>  
+    {% endif %}
+    <div class="extractForm">
+        <h2>Ekstrakcja opinii o produkcie</h2>
+        <form action="{{url_for('extractOpinions')}}" method="POST">
+            <input type="text" name="productId" placeholder="Wpisz kod produktu">
+            <input type="submit" value="SUBMIT">
+        </form>
+    </div>
 </body>
 </html>

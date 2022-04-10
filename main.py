@@ -8,6 +8,8 @@ from flask import (
 import requests
 import logging
 import json
+import os
+from Product import ProductDetails
 import Review as Review
 from bs4 import BeautifulSoup
 
@@ -29,10 +31,14 @@ def extractOpinions():
         elif statusCode != 200:
             error = "Produkt o podanym id nie istnieje, lub wystąpił inny błąd."
         else:
-            getProductData(productId)
-            # return redirect(redirectUrl, code=302)
+            product = getProductData(productId)
+            saveProductAsJson(product)
+            return redirect(redirectUrl, code=302)
     return render_template("extractOpinion.html", error=error)
 
+def saveProductAsJson(product):
+    with open(os.path.join('products', f"{product.id}.json"), "w") as file:
+        file.write(product.toJSON())
 
 def getProductData(productId):
     requestedUrl = f'https://www.ceneo.pl/{productId}'
@@ -41,17 +47,23 @@ def getProductData(productId):
     productTitle = soup.find(class_="product-top__product-info__name").text.strip()
     averageRating = soup.find(class_="product-review__score").text.strip()
     numberOfReviews = soup.find(class_="product-review__link").find("span").text.strip()
-    app.logger.info(numberOfReviews)
+    numberOfAdvantages = 0
+    numberOfDisadvantages = 0
+    reviews = getReviewsFromProduct(productId)
+    for review in reviews:
+        numberOfAdvantages += review.advantagesCount
+        numberOfDisadvantages += review.disAdvantagesCount
+    product = ProductDetails(productId, productTitle, numberOfReviews, numberOfAdvantages, numberOfDisadvantages, averageRating, reviews)
+    return product
 
 ## move to another file
 def getReviewsFromProduct(productId):
-    requestedUrl
+    requestedUrl = ""
     page = 1
     hasNextPage = True
     totalReviews = 0
     allReviews = []
     while(hasNextPage):
-        # app.logger.info(page)
         requestedUrl = f'https://www.ceneo.pl/{productId}/opinie-{page}'
         requestedPage = requests.get(requestedUrl)
         soup = BeautifulSoup(requestedPage.content, "html.parser")
@@ -60,12 +72,10 @@ def getReviewsFromProduct(productId):
         for comment in comments:
             review = scrapReview(comment)
             allReviews.append(review)
-            # app.logger.info(review.getLogData())
         if len(comments) < 10:
             hasNextPage = False
         totalReviews += len(comments)
         page += 1
-        # app.logger.info(totalReviews)
     return allReviews
 
 ### REVIEW Scrapper
@@ -98,7 +108,6 @@ def scrapReview(comment):
         for disAdvantageSingleNode in disAdvantagesNodes:
             disAdvantage = disAdvantageSingleNode.text.strip()
             disAdvantages.append(disAdvantage)
-    # app.logger.info(advantages)
     return Review.ReviewComment(reviewId, authorName, productRate, commentContent, recommendation, confirmedPurchase, publishedDate, purchaseDate, likesCount, dislikesCount, advantages, len(advantages), disAdvantages, len(disAdvantages))
 
 if __name__ == '__main__':

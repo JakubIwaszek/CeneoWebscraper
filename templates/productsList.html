@@ -23,9 +23,20 @@
         </a>
     </div>
     <div class="productsList">
-        <h2>Lista</h2>
+        <h1>Lista produktów</h1>
         {% for product in variable %}
-        <h1>{{ product["title"] }}</h1>
+        <div class="singleProduct">
+            <a href="https://ceneo.pl/{{product['id']}}"><h3>{{ product["title"] }}</h3></a>
+            <div class="singleProductDetailsBlock">
+                <span>Liczba opinii: {{ product["allReviewsCount"] }}</span>
+                <span>Liczba zalet: {{ product["allAdvantagesCount"] }}</span>
+                <span>Liczba wad: {{ product["allDisadvangatesCount"] }}</span>
+                <span>Średnia ocena: {{ product["averageRating"] }} / 5.00</span>
+            </div>
+            <a href="{{url_for('download', id=product['id'], type='json')}}" download>Pobierz plik .JSON</a>
+            <a href="{{url_for('download', id=product['id'], type='xlsx')}}" download>Pobierz plik .xlsx</a>
+            <a href="{{url_for('download', id=product['id'], type='csv')}}" download>Pobierz plik .csv</a>
+        </div>
         {% endfor %}
     </div>
 </body>

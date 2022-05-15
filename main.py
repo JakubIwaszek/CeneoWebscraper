@@ -36,6 +36,10 @@ def extractOpinions():
             return redirect(redirectUrl, code=302)
     return render_template("extractOpinion.html", error=error)
 
+@app.route('/list', methods=["GET"])
+def showProductsList():
+    return render_template("productsList.html")
+
 def saveProductAsJson(product):
     with open(os.path.join('products', f"{product.id}.json"), "w") as file:
         file.write(product.toJSON())

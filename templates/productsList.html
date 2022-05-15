@@ -23,7 +23,10 @@
         </a>
     </div>
     <div class="productsList">
-
+        <h2>Lista</h2>
+        {% for product in variable %}
+        <h1>{{ product["title"] }}</h1>
+        {% endfor %}
     </div>
 </body>
 </html>

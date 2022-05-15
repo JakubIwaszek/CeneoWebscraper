@@ -1,3 +1,4 @@
+from re import A
 from flask import (
     Flask,
     flash,
@@ -38,7 +39,17 @@ def extractOpinions():
 
 @app.route('/list', methods=["GET"])
 def showProductsList():
-    return render_template("productsList.html")
+    products = getProductsFromJsons()
+    return render_template("productsList.html", variable=products)
+
+def getProductsFromJsons():
+    productsNames = os.listdir('products')
+    products = []
+    for productName in productsNames:
+        with open(os.path.join('products', productName), "r") as file:
+            data = json.load(file)
+            products.append(data)
+    return products
 
 def saveProductAsJson(product):
     with open(os.path.join('products', f"{product.id}.json"), "w") as file:

@@ -56,9 +56,24 @@ def download(id, type):
         return send_file(f'products/{id}.json')
     return send_file(f'output/output.{type}', download_name=f'{id}.{type}')
 
+@app.route("/charts/<productId>")
+def showCharts(productId):
+     with open(os.path.join('products', f"{productId}.json"), "r") as file:
+        product = json.load(file)
+        recs = {'Title': 'Rekomendacje', 'Polecam': 0, 'Nie Polecam': 0}
+        rating = { 'Ocena': 'Liczba Opinii', '0': 0, '0,5': 0,'1': 0, '1,5': 0,'2': 0,'2,5': 0,'3': 0,'3,5': 0,'4': 0,'4,5': 0,'5': 0 }
+        for review in product["reviews"]:
+            if review['recommendation'] == 'Polecam':
+                recs['Polecam'] += 1
+            else:
+                recs['Nie Polecam'] += 1
+            rating[review['productRate'].split("/")[0]] += 1
+        
+        return render_template("productCharts.html", pieData=recs, lineData=rating)
+
 def getProductsFromJsons():
     try:
-        productsNames = os.listdir('products')
+        productsNames = os.listdir(os.getcwd() + '/products')
         products = []
         for productName in productsNames:
             app.logger.info(productName)

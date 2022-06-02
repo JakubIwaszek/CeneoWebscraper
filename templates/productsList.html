@@ -36,6 +36,8 @@
             <a href="{{url_for('download', id=product['id'], type='json')}}" download>Pobierz plik .JSON</a>
             <a href="{{url_for('download', id=product['id'], type='xlsx')}}" download>Pobierz plik .xlsx</a>
             <a href="{{url_for('download', id=product['id'], type='csv')}}" download>Pobierz plik .csv</a>
+            <br>
+            <a href="{{url_for('showCharts', productId=product['id'])}}">Pokaz wykresy</a>
         </div>
         {% endfor %}
     </div>

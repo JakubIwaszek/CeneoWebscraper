@@ -35,6 +35,8 @@ body {
     text-decoration: none;
     text-align: center;
     background-color: transparent;
+    padding: 10px;
+    margin: 10px;
 }
 
 .navBar a:last-child, .navBar a:first-child {
@@ -43,14 +45,6 @@ body {
 
 .navBar a:hover {
     background-color: sandybrown;
-}
-
-a {
-    padding: 10px;
-    margin: 10px;
-    background-color: coral;
-    color: white;
-    text-align: center;
 }
 
 .mainContainer {
@@ -104,4 +98,29 @@ form input[type=submit] {
     color: white;
     border: none;
     border-radius: 16px;
+}
+
+.singleProduct {
+    background-color: rgba(255, 255, 255, 0.7);
+    height: 50%;
+    width: 75%;
+    margin: auto;
+    text-align: center;
+    margin-top: 10vh;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.singleProductDetailsBlock {
+    width: 100%;
+    border: 1px coral;
+    margin:0;
+    padding:0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.singleProductDetailsBlock span {
+    width: 25%
 }

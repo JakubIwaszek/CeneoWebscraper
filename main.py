@@ -1,14 +1,17 @@
+from re import A
 from flask import (
     Flask,
     flash,
     render_template,
     redirect,
-    request
+    request,
+    send_file
 )
 import requests
 import logging
 import json
 import os
+import pandas as pd
 from Product import ProductDetails
 import Review as Review
 from bs4 import BeautifulSoup
@@ -36,6 +39,52 @@ def extractOpinions():
             return redirect(redirectUrl, code=302)
     return render_template("extractOpinion.html", error=error)
 
+@app.route('/list', methods=["GET"])
+def showProductsList():
+    products = getProductsFromJsons()
+    return render_template("productsList.html", variable=products)
+
+@app.route("/download/<id>/<type>")
+def download(id, type):
+    file = pd.read_json(f'products/{id}.json')
+    if type == "csv":
+        app.logger.info("csv")
+        file.to_csv('output/output.csv', index=False)
+    elif type == "xlsx":
+        file.to_excel('output/output.xlsx', index=False)
+    else:
+        return send_file(f'products/{id}.json')
+    return send_file(f'output/output.{type}', download_name=f'{id}.{type}')
+
+@app.route("/charts/<productId>")
+def showCharts(productId):
+     with open(os.path.join('products', f"{productId}.json"), "r") as file:
+        product = json.load(file)
+        recs = {'Title': 'Rekomendacje', 'Polecam': 0, 'Nie Polecam': 0}
+        rating = { 'Ocena': 'Liczba Opinii', '0': 0, '0,5': 0,'1': 0, '1,5': 0,'2': 0,'2,5': 0,'3': 0,'3,5': 0,'4': 0,'4,5': 0,'5': 0 }
+        for review in product["reviews"]:
+            if review['recommendation'] == 'Polecam':
+                recs['Polecam'] += 1
+            else:
+                recs['Nie Polecam'] += 1
+            rating[review['productRate'].split("/")[0]] += 1
+        
+        return render_template("productCharts.html", pieData=recs, lineData=rating)
+
+def getProductsFromJsons():
+    try:
+        productsNames = os.listdir(os.getcwd() + '/products')
+        products = []
+        for productName in productsNames:
+            app.logger.info(productName)
+            app.logger.info(os.getcwd())
+            with open(os.path.join('products', productName), "r") as file:
+                data = json.load(file)
+                products.append(data)
+        return products
+    except:
+        return []
+
 def saveProductAsJson(product):
     with open(os.path.join('products', f"{product.id}.json"), "w") as file:
         file.write(product.toJSON())
@@ -45,8 +94,8 @@ def getProductData(productId):
     requestedPage = requests.get(requestedUrl)
     soup = BeautifulSoup(requestedPage.content, "html.parser")
     productTitle = soup.find(class_="product-top__product-info__name").text.strip()
-    averageRating = soup.find(class_="product-review__score").text.strip()
-    numberOfReviews = soup.find(class_="product-review__link").find("span").text.strip()
+    averageRating = soup.find(class_="product-review__score").get("content")
+    numberOfReviews = soup.find(class_="product-review__link").find("span").text.strip() if soup.find(class_="product-review__link").find("span") is not None else 0
     numberOfAdvantages = 0
     numberOfDisadvantages = 0
     reviews = getReviewsFromProduct(productId)
@@ -68,7 +117,7 @@ def getReviewsFromProduct(productId):
         requestedPage = requests.get(requestedUrl)
         soup = BeautifulSoup(requestedPage.content, "html.parser")
         allCommentsSection = soup.find(class_="js_product-reviews js_reviews-hook js_product-reviews-container")
-        comments = allCommentsSection.find_all("div", class_="user-post user-post__card js_product-review")
+        comments = allCommentsSection.find_all("div", class_="user-post user-post__card js_product-review") if allCommentsSection is not None else []
         for comment in comments:
             review = scrapReview(comment)
             allReviews.append(review)
@@ -85,7 +134,7 @@ def scrapReview(comment):
     authorName = comment.find("span", class_="user-post__author-name").text.strip()
     productRate = comment.find("span", class_="user-post__score-count").text.strip()
     commentContent = comment.find("div", class_="user-post__text").text.strip()
-    recommendation = comment.find("span", class_="user-post__author-recomendation").text.strip()
+    recommendation = comment.find("span", class_="user-post__author-recomendation").text.strip() if comment.find("span", class_="user-post__author-recomendation") is not None else "Brak"
     confirmedPurchase = "Opinia nie potwierdzona zakupem"
     if comment.find("div", class_="review-pz"):
         confirmedPurchase = comment.find("div", class_="review-pz").text.strip()

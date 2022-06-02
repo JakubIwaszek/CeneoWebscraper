@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista produktów</title>
+    <link rel="stylesheet" href="static/mainStyle.css">
+</head>
+<body>
+    <div class="navBar">
+        <a href="{{url_for('extractOpinions')}}">
+            Ekstrakcja opinii
+        </a>
+        <a href="{{url_for('showProductsList')}}">
+            Lista produktów
+        </a>
+        <a href="{{url_for('index')}}">
+            Strona główna
+        </a>
+        <a href="">
+            O autorze
+        </a>
+    </div>
+    <div class="productsList">
+        <h1>Lista produktów</h1>
+        {% for product in variable %}
+        <div class="singleProduct">
+            <a href="https://ceneo.pl/{{product['id']}}"><h3>{{ product["title"] }}</h3></a>
+            <div class="singleProductDetailsBlock">
+                <span>Liczba opinii: {{ product["allReviewsCount"] }}</span>
+                <span>Liczba zalet: {{ product["allAdvantagesCount"] }}</span>
+                <span>Liczba wad: {{ product["allDisadvangatesCount"] }}</span>
+                <span>Średnia ocena: {{ product["averageRating"] }} / 5.00</span>
+            </div>
+            <a href="{{url_for('download', id=product['id'], type='json')}}" download>Pobierz plik .JSON</a>
+            <a href="{{url_for('download', id=product['id'], type='xlsx')}}" download>Pobierz plik .xlsx</a>
+            <a href="{{url_for('download', id=product['id'], type='csv')}}" download>Pobierz plik .csv</a>
+            <br>
+            <a href="{{url_for('showCharts', productId=product['id'])}}">Pokaz wykresy</a>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>

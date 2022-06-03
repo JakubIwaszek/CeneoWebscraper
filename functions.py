@@ -61,7 +61,7 @@ def getReviewsFromProduct(productId):
         for comment in comments:
             review = scrapReview(comment)
             allReviews.append(review)
-        if len(comments) < 10:
+        if len(comments) < 10 or page > 50:
             hasNextPage = False
         totalReviews += len(comments)
         page += 1

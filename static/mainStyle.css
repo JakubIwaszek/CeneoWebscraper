@@ -124,3 +124,20 @@ form input[type=submit] {
 .singleProductDetailsBlock span {
     width: 25%
 }
+
+.downloadButtons {
+    width: 100%;
+    margin: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.downloadButtons a {
+    width: 30%;
+    padding-top: 15px;
+    padding-bottom: 15px;
+    margin: 15px;
+    text-align: center;
+    background-color: bisque;
+}
